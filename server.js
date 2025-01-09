@@ -31,8 +31,8 @@ app.use("/api", routes); // Add this line
 const server = http.createServer(app);
 
 // Setup WebSocket and MQTT
-const wss = setupWebSocket(server);
-const mqttClient = setupMQTTClient(wss);
+// const wss = setupWebSocket(server);
+// const mqttClient = setupMQTTClient(wss);
 
 // Start the server
 server.listen(PORT, async () => {
