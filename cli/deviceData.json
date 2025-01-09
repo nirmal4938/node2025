@@ -1,0 +1,44 @@
+[
+  {
+    "device_id": "PUMP_001",
+    "device_type": "Pump",
+    "timestamp": "2024-12-29T09:03:00Z",
+    "logical_device_id": "TANK_GSR_001",
+    "metadata": {
+      "location": "Zone B"
+    },
+    "data": {
+      "value": 45,
+      "unit": "kW",
+      "status": "OFF"
+    }
+  },
+  {
+    "device_id": "FLOW_METER_001",
+    "device_type": "Flow Meter",
+    "timestamp": "2024-12-29T09:03:00Z",
+    "logical_device_id": "TANK_GSR_001",
+    "metadata": {
+      "location": "Zone B"
+    },
+    "data": {
+      "value": 20.5,
+      "unit": "m³/h",
+      "status": "ACTIVE"
+    }
+  },
+  {
+    "device_id": "CL_METER_001",
+    "device_type": "Chlorine Meter",
+    "timestamp": "2024-12-29T09:03:00Z",
+    "logical_device_id": "TANK_ESR_001",
+    "metadata": {
+      "location": "Zone A"
+    },
+    "data": {
+      "value": 0.1,
+      "unit": "mg_per_liter",
+      "status": "ACTIVE"
+    }
+  }
+]

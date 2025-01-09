@@ -1,0 +1,23 @@
+[
+  {
+    "device_type": "Pump",
+    "parameter": "status",
+    "thresholds": { "exact": "OFF" },
+    "alarm_type": "WARNING",
+    "alert_message_template": "Pump is OFF in {{metadata.location}}."
+  },
+  {
+    "device_type": "Flow Meter",
+    "parameter": "value",
+    "thresholds": { "upperLimit": 18 },
+    "alarm_type": "CRITICAL",
+    "alert_message_template": "High flow rate detected: {{value}} m³/h in {{metadata.location}}."
+  },
+  {
+    "device_type": "Chlorine Meter",
+    "parameter": "value",
+    "thresholds": { "lowerLimit": 0.5 },
+    "alarm_type": "CRITICAL",
+    "alert_message_template": "Low chlorine level: {{value}} mg/l in {{metadata.location}}."
+  }
+]

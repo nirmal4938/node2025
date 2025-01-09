@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MQTT Web Client</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        padding: 0;
+        line-height: 1.6;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+
+      #messages {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        height: 300px;
+        overflow-y: auto;
+        background: #f9f9f9;
+        margin-bottom: 20px;
+      }
+
+      #messageInputSection {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      input,
+      button {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        outline: none;
+        font-size: 16px;
+      }
+
+      input {
+        flex: 1;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MQTT Web Client</h1>
+
+    <!-- Message Display Area -->
+    <div id="messages"></div>
+
+    <!-- Input Section -->
+    <div id="messageInputSection">
+      <input id="topicInput" type="text" placeholder="Enter topic" />
+      <input id="messageInput" type="text" placeholder="Enter message" />
+      <button id="publishButton">Publish</button>
+    </div>
+
+    <script>
+      const ws = new WebSocket(`ws://${location.host}`); // Connect to WebSocket server
+
+      const messagesDiv = document.getElementById('messages');
+      const topicInput = document.getElementById('topicInput');
+      const messageInput = document.getElementById('messageInput');
+      const publishButton = document.getElementById('publishButton');
+
+      // Function to display a message in the messages div
+      function displayMessage(content) {
+        const messageElement = document.createElement('p');
+        messageElement.textContent = content;
+        messagesDiv.appendChild(messageElement);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the latest message
+      }
+
+      // Handle incoming messages from the WebSocket server
+      ws.onmessage = (event) => {
+        const { topic, message } = JSON.parse(event.data);
+        console.log('message', message);
+        displayMessage(`Topic: ${topic}, Message: ${JSON.stringify(message)}`);
+      };
+
+      // Publish a message to MQTT via WebSocket
+      publishButton.addEventListener('click', () => {
+        const topic = topicInput.value.trim();
+        let message = messageInput.value.trim();
+
+        // Validate inputs
+        if (!topic || !message) {
+          alert('Please enter both topic and message!');
+          return;
+        }
+
+        try {
+          // Attempt to parse the message as JSON to allow structured data
+          message = JSON.parse(message);
+        } catch (error) {
+          console.warn('Message is not valid JSON. Sending as a plain string.');
+        }
+
+        // Prepare the payload to send
+        const payload = { topic, message };
+        console.log('payload', payload);
+        // Send the payload to the WebSocket server
+        ws.send(JSON.stringify(payload));
+
+        // Display the message locally for user feedback
+        displayMessage(
+          `(You) Published: Topic: ${topic}, Message: ${JSON.stringify(
+            message
+          )}`
+        );
+
+        // Clear the input fields
+        messageInput.value = '';
+      });
+
+      // WebSocket error handling
+      ws.onerror = () => {
+        displayMessage('Error: Unable to connect to WebSocket server.');
+      };
+
+      // WebSocket connection closed
+      ws.onclose = () => {
+        displayMessage('Connection to WebSocket server closed.');
+      };
+    </script>
+  </body>
+</html>

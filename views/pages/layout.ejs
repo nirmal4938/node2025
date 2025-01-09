@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flexbox Layout</title>
+    <style>
+      /* Basic reset and full-height setup */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+        font-family: Arial, sans-serif;
+      }
+      /* Flex container styling */
+      .container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh; /* Full viewport height */
+      }
+      .header {
+        height: 100px;
+        width: 100%;
+        background-color: #333;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      /* Main content area */
+      .main-content {
+        display: flex;
+        flex: 1;
+      }
+      /* Individual sections with specified widths */
+      .section-60 {
+        flex: 0 0 60%;
+        background-color: #e6f7ff;
+        padding: 1rem;
+      }
+      .section-20 {
+        flex: 0 0 20%;
+        background-color: #ffcccb;
+        padding: 1rem;
+      }
+      .section-20-alt {
+        flex: 0 0 20%;
+        background-color: #d4f5d4;
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Header Section (100px height, 100% width)</h2>
+      </div>
+
+      <!-- Main content area with 60%, 20%, and 20% sections -->
+      <div class="main-content">
+        <!-- First Section: 60% width -->
+        <div class="section-60">
+          <h2>60% Width Section</h2>
+          <p>This section takes up 60% of the container's width.</p>
+        </div>
+
+        <!-- Second Section: 20% width -->
+        <div class="section-20">
+          <h2>20% Width Section</h2>
+          <p>This section takes up 20% of the container's width.</p>
+        </div>
+
+        <!-- Third Section: 20% width -->
+        <div class="section-20-alt">
+          <h2>20% Width Section</h2>
+          <p>This section also takes up 20% of the container's width.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Form with Konva</title>
+    <script src="https://unpkg.com/konva/konva.min.js"></script>
+    <!-- Include Konva CDN -->
+  </head>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/primeflex@3/primeflex.min.css"
+  />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+    crossorigin="anonymous"
+  />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #153356;
+    }
+  </style>
+  <body>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <!-- <h1>Submit Form with Konva Circle</h1> -->
+
+    <!-- Your form for submitting data -->
+    <!-- <form action="/submit" method="POST">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required /><br /><br />
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required /><br /><br />
+      <label for="message">Message:</label>
+      <textarea id="message" name="message" required></textarea><br /><br />
+      <button type="submit">Submit</button>
+    </form> -->
+
+    <!-- Add a div where the Konva canvas will be rendered -->
+    <!-- <div
+      id="konva-container"
+      class="w-10 h-full"
+      style="background: lightgreen"
+    ></div> -->
+    <div class="text-center">
+      <div class="row">
+        <!-- <div class="col-10"> -->
+        <div id="konva-container" class="col-10 bg-success-subtle"></div>
+        <!-- </div> -->
+        <div class="col-2">2 of 3 (wider)</div>
+      </div>
+    </div>
+    <script>
+      var width = window.innerWidth;
+      var height = window.innerHeight;
+      // Konva Stage Creation
+      var stage = new Konva.Stage({
+        container: 'konva-container', // id of the container <div>
+        width: width,
+        height: height,
+        fill: '#B1B8CF',
+      });
+
+      var animLayer = new Konva.Layer();
+      var staticLayer = new Konva.Layer();
+      // Create a Layer
+
+      var GSRTankGroup = new Konva.Group({
+        x: 200,
+        y: height - 400,
+        rotation: 0,
+      });
+      var ESRTankGroup = new Konva.Group({
+        x: width - 500,
+        y: 100,
+        rotation: 0,
+      });
+      function createPumpGroup({
+        x,
+        y,
+        label = 'Pump',
+        rotorOffset = { x: 0, y: 0 },
+      }) {
+        // Create a Group for the pump
+        const pumpGroup = new Konva.Group({
+          x: x, // Position of the entire group
+          y: y,
+        });
+
+        // Create the Pump Body
+        const pumpBody = new Konva.Shape({
+          sceneFunc: (context, shape) => {
+            context.beginPath();
+            context.ellipse(0, 0, 50, 50, 0, 0, Math.PI * 2, false); // Ellipse for the pump body
+            context.closePath();
+            context.fillStrokeShape(shape);
+          },
+          stroke: 'gray',
+          strokeWidth: 1,
+          fill: 'lightgray',
+        });
+        // Create the Rotor
+        const rotor = new Konva.Shape({
+          x: rotorOffset.x, // Offset for fine-tuning rotor position
+          y: rotorOffset.y,
+          sceneFunc: (context, shape) => {
+            // Rotor Frame
+            context.beginPath();
+            context.arc(0, 0, 40, 0, Math.PI * 2, false);
+            context.fillStyle = '#eee';
+            context.fill();
+            context.lineWidth = 2;
+            context.strokeStyle = '#666';
+            context.stroke();
+
+            // Rotor Background
+            context.beginPath();
+            context.arc(0, 0, 34, 0, Math.PI * 2, false);
+            context.fillStyle = '#777';
+            context.fill();
+            context.lineWidth = 1;
+            context.strokeStyle = '#222';
+            context.stroke();
+
+            // Rotor Blades
+            context.beginPath();
+            context.moveTo(0, 0);
+            context.lineTo(0, 25);
+            context.lineTo(-8, 10);
+            context.lineTo(0, 0);
+            context.moveTo(0, 0);
+            context.lineTo(0, -25);
+            context.lineTo(8, -10);
+            context.lineTo(0, 0);
+            context.moveTo(0, 0);
+            context.lineTo(25, 0);
+            context.lineTo(10, 8);
+            context.lineTo(0, 0);
+            context.moveTo(0, 0);
+            context.lineTo(-25, 0);
+            context.lineTo(-10, -8);
+            context.lineTo(0, 0);
+            context.fillStyle = '#bbb';
+            context.fill();
+            context.lineWidth = 3;
+            context.strokeStyle = '#222';
+            context.stroke();
+
+            context.fillStrokeShape(shape);
+          },
+        });
+        function createPipeWithPorts({
+          x,
+          y,
+          width,
+          height,
+          gradientColors,
+          strokeColor,
+          strokeWidth,
+          rotation = 0,
+        }) {
+          const pipeGroup = new Konva.Group({ x, y, rotation });
+
+          // Pipe Body with Linear Gradient
+          const pipeBody = new Konva.Rect({
+            x: 0,
+            y: -height / 2,
+            width,
+            height,
+            fillLinearGradientStartPoint: { x: 0, y: -height / 2 + 17 },
+            fillLinearGradientEndPoint: { x: 0, y: height / 2 + 12 },
+            fillLinearGradientColorStops: [
+              0,
+              'gray',
+              0.2,
+              'white',
+              0.8,
+              'white',
+              1,
+              'gray',
+            ],
+            stroke: strokeColor,
+            strokeWidth,
+          });
+
+          // Pipe End Cap
+          const pipeEnd = new Konva.Rect({
+            x: width - 10, // Position at the end of the pipe
+            y: -height / 2 - 3, // Extend slightly beyond the pipe body
+            width: 10,
+            height: height + 6,
+            fill: 'white',
+            stroke: strokeColor,
+            strokeWidth,
+          });
+
+          // Add elements to the pipe group
+          pipeGroup.add(pipeBody);
+          pipeGroup.add(pipeEnd);
+
+          return pipeGroup;
+        }
+        const inflowPipe = createPipeWithPorts({
+          x: -20, // Position the inflow pipe
+          y: 20,
+          width: 60,
+          height: 30,
+          gradientColors: {
+            start: 'gray',
+            midStart: 'white',
+            midEnd: 'white',
+            end: 'gray',
+          },
+          strokeColor: 'gray',
+          strokeWidth: 1,
+          rotation: 90,
+        });
+        const outflowPipe = createPipeWithPorts({
+          x: 20, // Position the inflow pipe
+          y: -20,
+          width: 60,
+          height: 30,
+          gradientColors: {
+            start: 'gray',
+            midStart: 'white',
+            midEnd: 'white',
+            end: 'gray',
+          },
+          strokeColor: 'gray',
+          strokeWidth: 1,
+          rotation: -90,
+        });
+        const pumpFlowmeter = new Konva.Shape({});
+        pumpGroup.add(pumpBody); // Add pump body to the group
+        pumpGroup.add(inflowPipe);
+        pumpGroup.add(outflowPipe);
+        pumpGroup.add(rotor); // Add rotor to the group
+
+        // Add a Label
+        const pumpLabel = new Konva.Text({
+          x: -20,
+          y: 60,
+          text: label,
+          fontSize: 14,
+          fontFamily: 'sans-serif',
+          fill: '#350100',
+          align: 'center',
+        });
+        pumpGroup.add(pumpLabel); // Add label to the group
+
+        return pumpGroup;
+      }
+
+      var layer = new Konva.Layer();
+      var gsrtank = new Konva.Shape({
+        width: 260,
+        height: 260,
+        sceneFunc: function (context, shape) {
+          const width = shape.width();
+          const height = shape.height();
+          const radius = width / 2; // Define the radius of the semi-circle
+          const centerX = width / 2; // Center of the shape horizontally
+          const centerY = height / 2; // Top semi-circle's centerY is equal to radius
+          context.beginPath();
+          // Draw the top semi-circle
+          // drawArc(context, centerX, centerY, radius, Math.PI, 0, false);
+          drawArc(context, centerX, centerY - 30, 20, Math.PI, 0, false);
+          // drawArc(context, centerX, centerY, radius, Math.PI, 0, false);
+
+          // drawCone(context, centerX, centerY, radius, 50, '#ffcc00');
+          drawRect(context, 0, centerY, radius * 2, 30, {
+            gradient: [
+              { position: 0, color: '#e5e5e5' },
+              { position: 0.5, color: '#ffffff' },
+              { position: 1, color: '#e5e5e5' },
+            ],
+            gradientDirection: 'vertical',
+            stroke: '#a1a3a6',
+            strokeWidth: 2,
+          });
+          drawCurvilinearShape(
+            context,
+            0,
+            centerY, // Start point
+            2 * radius,
+            centerY, // End point
+            centerX, // Control point 1 (not used)
+            centerY - 50, // Control point 1 (not used)
+            centerX, // Control point 2 (not used)
+            centerY - 50, // Control point 2 (not used)
+            ['#00ccff', '#003366'], // Gradient colors
+            '#a1a3a6', // Stroke color
+            0 // Stroke width
+          );
+          drawArc(context, centerX, centerY + 30, radius, 0, Math.PI, false);
+
+          // context.beginPath();
+          // context.arc(centerX, centerY, radius, Math.PI, 0, false); // Top semi-circle
+          context.closePath();
+
+          // Optional: Apply a fill to the semi-circle
+          // context.fillStyle = '#d4d4d4'; // Light grey color for the semi-circle
+          // context.fill();
+
+          // Optional: Apply a stroke to the semi-circle
+          context.strokeStyle = '#a1a3a6';
+          context.lineWidth = 2;
+          context.stroke();
+
+          // Render the shape in Konva
+          context.fillStrokeShape(shape);
+        },
+      });
+      var gsrTankStand = new Konva.Shape({
+        width: 260,
+        height: 200,
+        sceneFunc: function (context, shape) {
+          const width = shape.width();
+          const height = shape.height();
+          context.beginPath();
+          // 1
+          drawRect(context, 20, 230, 10, 100, {
+            gradient: [
+              { position: 0, color: '#e5e5e5' },
+              { position: 0.5, color: '#ffffff' },
+              { position: 1, color: '#e5e5e5' },
+            ],
+            gradientDirection: 'horizontal',
+            stroke: '#a1a3a6',
+            strokeWidth: 2,
+          });
+
+          // stands respectively
+          drawRect(context, 5, 330, 40, 20, {
+            gradient: [
+              { position: 0, color: '#e5e5e5' },
+              { position: 0.5, color: '#ffffff' },
+              { position: 1, color: '#e5e5e5' },
+            ],
+            gradientDirection: 'horizontal',
+            stroke: '#a1a3a6',
+            strokeWidth: 2,
+          });
+
+          // 2
+          drawRect(context, width - 30, 230, 10, 100, {
+            gradient: [
+              { position: 0, color: '#e5e5e5' },
+              { position: 0.5, color: '#ffffff' },
+              { position: 1, color: '#e5e5e5' },
+            ],
+            gradientDirection: 'horizontal',
+            stroke: '#a1a3a6',
+            strokeWidth: 2,
+          });
+          // stands respectively
+
+          drawRect(context, width - 45, 330, 40, 20, {
+            gradient: [
+              { position: 0, color: '#e5e5e5' },
+              { position: 0.5, color: '#ffffff' },
+              { position: 1, color: '#e5e5e5' },
+            ],
+            gradientDirection: 'horizontal',
+            stroke: '#a1a3a6',
+            strokeWidth: 2,
+          });
+
+          //  3
+          drawRect(context, 60, 270, 10, 60, {
+            gradient: [
+              { position: 0, color: '#e5e5e5' },
+              { position: 0.5, color: '#ffffff' },
+              { position: 1, color: '#e5e5e5' },
+            ],
+            gradientDirection: 'horizontal',
+            stroke: '#a1a3a6',
+            strokeWidth: 2,
+          });
+
+          // stands respectively
+          drawRect(context, 45, 320, 40, 20, {
+            gradient: [
+              { position: 0, color: '#e5e5e5' },
+              { position: 0.5, color: '#ffffff' },
+              { position: 1, color: '#e5e5e5' },
+            ],
+            gradientDirection: 'horizontal',
+            stroke: '#a1a3a6',
+            strokeWidth: 2,
+          });
+
+          // 4
+          drawRect(context, width - 70, 270, 10, 60, {
+            gradient: [
+              { position: 0, color: '#e5e5e5' },
+              { position: 0.5, color: '#ffffff' },
+              { position: 1, color: '#e5e5e5' },
+            ],
+            gradientDirection: 'horizontal',
+            stroke: '#a1a3a6',
+            strokeWidth: 2,
+          });
+
+          // stands respectively
+          drawRect(context, width - 85, 320, 40, 20, {
+            gradient: [
+              { position: 0, color: '#e5e5e5' },
+              { position: 0.5, color: '#ffffff' },
+              { position: 1, color: '#e5e5e5' },
+            ],
+            gradientDirection: 'horizontal',
+            stroke: '#a1a3a6',
+            strokeWidth: 2,
+          });
+          context.closePath();
+          context.strokeStyle = '#a1a3a6';
+          context.lineWidth = 2;
+          context.stroke();
+
+          // Render the shape in Konva
+          context.fillStrokeShape(shape);
+        },
+      });
+
+      var esrtank = new Konva.Shape({
+        width: 160,
+        height: 460,
+        sceneFunc: function (context, shape) {
+          const width = shape.width();
+          const height = shape.height();
+          const radius = width / 2; // Define the radius of the semi-circle
+          const centerX = width / 2; // Center of the shape horizontally
+          const centerY = height / 4; // Top semi-circle's centerY is equal to radius
+          context.beginPath();
+          // Draw the top semi-circle
+          // drawArc(context, centerX, centerY, radius, Math.PI, 0, false);
+          // drawArc(context, centerX, centerY - 30, 20, Math.PI, 0, false);
+          // drawArc(context, centerX, centerY, radius, Math.PI, 0, false);
+
+          // drawCone(context, centerX, centerY, radius, 50, '#ffcc00');
+          drawRect(context, 0, centerY, radius * 2, 300, {
+            gradient: [
+              { position: 0, color: '#e5e5e5' },
+              { position: 0.2, color: '#786c3b' },
+              { position: 0.4, color: '#a1a3a6' },
+
+              { position: 0.5, color: '#c7c5b8' },
+              { position: 0.6, color: '#a1a3a6' },
+
+              { position: 0.8, color: '#786c3b' },
+              { position: 1, color: '#e5e5e5' },
+            ],
+            gradientDirection: 'horizontal',
+            stroke: '#a1a3a6',
+            strokeWidth: 2,
+          });
+          drawCurvilinearShape(
+            context,
+            0,
+            centerY, // Start point
+            2 * radius,
+            centerY, // End point
+            centerX, // Control point 1 (not used)
+            centerY - 60, // Control point 1 (not used)
+            centerX, // Control point 2 (not used)
+            centerY - 60, // Control point 2 (not used)
+            ['#00ccff', '#003366'], // Gradient colors
+            '#a1a3a6', // Stroke color
+            0 // Stroke width
+          );
+          // drawCurvilinearShape(
+          //   context,
+          //   0,
+          //   centerY + 300, // Start point
+          //   2 * radius,
+          //   centerY + 300, // End point
+          //   centerX, // Control point 1 (not used)
+          //   centerY + 370, // Control point 1 (not used)
+          //   centerX, // Control point 2 (not used)
+          //   centerY + 370, // Control point 2 (not used)
+          //   ['#00ccff', '#003366'], // Gradient colors
+          //   '#a1a3a6', // Stroke color
+          //   0 // Stroke width
+          // );
+          // drawArc(context, centerX, centerY + 230, radius, 0, Math.PI, false);
+
+          context.closePath();
+
+          // Optional: Apply a fill to the semi-circle
+          context.fillStyle = '#d4d4d4'; // Light grey color for the semi-circle
+          context.fill();
+
+          // Optional: Apply a stroke to the semi-circle
+          context.strokeStyle = '#a1a3a6';
+          context.lineWidth = 2;
+          context.stroke();
+
+          // Render the shape in Konva
+          context.fillStrokeShape(shape);
+        },
+      });
+      // var axes = new Konva.Shape({
+      //   x: -140,
+      //   y: 0,
+      //   width: 500,
+      //   height: 500,
+      //   sceneFunc: function (context, shape) {
+      //     const width = shape.width();
+      //     const height = shape.height();
+      //     const centerX = width / 2; // Center X (origin for axes)
+      //     const centerY = height / 2; // Center Y (origin for axes)
+      //     const scale = 50; // Scale factor for ticks
+
+      //     // Draw X and Y axes
+      //     context.beginPath();
+      //     context.moveTo(0, centerY); // Start of X-axis
+      //     context.lineTo(width, centerY); // End of X-axis
+      //     context.moveTo(centerX, 0); // Start of Y-axis
+      //     context.lineTo(centerX, height); // End of Y-axis
+      //     context.strokeStyle = '#000000'; // Black color for axes
+      //     context.lineWidth = 1; // Thin lines for axes
+      //     context.stroke();
+      //     context.closePath();
+
+      //     // Draw X axis ticks from -5 to 5
+      //     context.beginPath();
+      //     for (let i = -5; i <= 5; i++) {
+      //       const x = centerX + i * scale;
+      //       context.moveTo(x, centerY - 5); // Tick line start
+      //       context.lineTo(x, centerY + 5); // Tick line end
+      //       context.fillText(i, x, centerY + 20); // Label for tick
+      //     }
+      //     context.stroke();
+      //     context.closePath();
+
+      //     // Draw Y axis ticks from -5 to 5
+      //     context.beginPath();
+      //     for (let i = -5; i <= 5; i++) {
+      //       const y = centerY - i * scale;
+      //       context.moveTo(centerX - 5, y); // Tick line start
+      //       context.lineTo(centerX + 5, y); // Tick line end
+      //       context.fillText(i, centerX + 10, y); // Label for tick
+      //     }
+      //     context.stroke();
+      //     context.closePath();
+
+      //     // drawAsymptoteLine(context, 0, 0, centerX, centerY, width, height);
+      //     // Draw the rational function y = 1/x in the first quadrant
+      //     drawRationalFunction(
+      //       context,
+      //       centerX,
+      //       centerY,
+      //       width,
+      //       height,
+      //       scale / 2,
+      //       [0, 2]
+      //     );
+      //     drawRationalFunction(
+      //       context,
+      //       centerX,
+      //       centerY,
+      //       width,
+      //       height,
+      //       scale / 2,
+      //       [-2, 0]
+      //     );
+
+      //     // drawIncreasingFunction(
+      //     //   context,
+      //     //   centerX,
+      //     //   centerY,
+      //     //   width,
+      //     //   height,
+      //     //   scale,
+      //     //   [0, 2]
+      //     // );
+      //     // Render the shape
+      //     context.fillStrokeShape(shape);
+      //   },
+      // });
+
+      GSRTankGroup.add(gsrTankStand);
+      GSRTankGroup.add(gsrtank);
+      // ESRTankGroup.add(esrTankStand);
+      ESRTankGroup.add(esrtank);
+      // Add the layer to the stage
+      layer.add(GSRTankGroup);
+      layer.add(ESRTankGroup);
+      const pump1 = createPumpGroup({ x: 100, y: 100, label: 'Pump 1' });
+      const pump = createPumpGroup({ x: 700, y: 500, label: 'Main Pump' });
+      layer.add(pump1);
+      layer.add(pump);
+      stage.add(layer);
+
+      // Draw the layer
+      layer.draw();
+
+      // ##
+
+      function drawIncreasingFunction(
+        context,
+        centerX,
+        centerY,
+        width,
+        height,
+        scale,
+        domain
+      ) {
+        const [xStart, xEnd] = domain; // Domain for x (e.g., [-2, 0])
+
+        context.beginPath();
+
+        // Loop through x values from xStart to xEnd
+        for (let x = xStart; x <= xEnd; x += 0.1) {
+          const scaledX = x; // No scaling on x as we're using actual domain
+          const y = Math.pow(scaledX, 2); // Increasing function: y = x^2
+
+          const plotX = centerX + scaledX * scale;
+          const plotY = centerY - y * scale;
+
+          if (x === xStart) {
+            context.moveTo(plotX, plotY); // Starting point for the curve
+          } else {
+            context.lineTo(plotX, plotY); // Draw line segments for the curve
+          }
+        }
+
+        context.strokeStyle = '#3498db'; // Blue color for the curve
+        context.lineWidth = 2; // Thickness of the curve
+        context.stroke();
+        context.closePath();
+      }
+      // Function to draw rational function y = 1/x within a particular domain
+      function drawRationalFunction(
+        context,
+        centerX,
+        centerY,
+        width,
+        height,
+        scale,
+        domain
+      ) {
+        const [xStart, xEnd] = domain; // Domain for x (e.g., [0, 3])
+
+        context.beginPath();
+
+        // Loop through x values from xStart to xEnd
+        for (let x = xStart; x <= xEnd; x += 0.1) {
+          const scaledX = x; // No scaling on x as we're using actual domain
+          const y = 1 / Math.abs(scaledX); // Rational function: f(x) = 1 / x
+
+          const plotX = centerX + scaledX * scale;
+          const plotY = centerY - y * scale;
+
+          if (x === xStart) {
+            context.moveTo(plotX, plotY); // Starting point for the curve
+          } else {
+            context.lineTo(plotX, plotY); // Draw line segments for the curve
+          }
+        }
+
+        context.strokeStyle = '#3498db'; // Blue color for the curve
+        context.lineWidth = 2; // Thickness of the curve
+        context.stroke();
+        context.closePath();
+      }
+
+      function drawAsymptoteLine(
+        context,
+        slope,
+        intercept,
+        centerX,
+        centerY,
+        width,
+        height
+      ) {
+        // Define the equation of the line y = slope * x + intercept
+        context.beginPath();
+
+        // Draw the line based on the slope and intercept
+        const startX = -centerX; // Start at the left side of the canvas
+        const startY = slope * startX + intercept; // Calculate y at startX
+        context.moveTo(centerX + startX, centerY - startY); // Move to the start point
+
+        const endX = centerX; // End at the right side of the canvas
+        const endY = slope * endX + intercept; // Calculate y at endX
+        context.lineTo(centerX + endX, centerY - endY); // Draw the line to the end point
+
+        context.strokeStyle = '#e74c3c'; // Red color for the asymptote line
+        context.lineWidth = 2; // Line thickness
+        context.stroke();
+        context.closePath();
+      }
+      function drawArc(
+        context,
+        centerX,
+        centerY,
+        radius,
+        startAngle,
+        endAngle,
+        counterClockwise = false
+      ) {
+        // Move to the starting point of the arc without drawing a line
+        const startX = centerX + radius * Math.cos(startAngle);
+        const startY = centerY + radius * Math.sin(startAngle);
+        context.moveTo(startX, startY);
+
+        // Create a radial gradient (you can also use createLinearGradient)
+        const gradient = context.createRadialGradient(
+          centerX,
+          centerY,
+          radius / 4,
+          centerX,
+          centerY,
+          radius
+        );
+        gradient.addColorStop(0, '#ffffff'); // Inner color
+        gradient.addColorStop(1, '#a1a3a6'); // Outer color
+
+        // Set the gradient as the fill style
+        context.fillStyle = gradient;
+
+        // Draw the arc
+        context.arc(
+          centerX,
+          centerY,
+          radius,
+          startAngle,
+          endAngle,
+          counterClockwise
+        );
+
+        // Fill the arc with the gradient
+        context.fill();
+      }
+
+      function drawRect(context, x, y, width, height, options = {}) {
+        // Static variable for border radius
+        const borderRadius = 3; // Set your desired static border radius value here
+
+        // Destructure options with defaults
+        const {
+          fill = 'transparent', // Default fill color
+          stroke = 'black', // Default stroke color
+          strokeWidth = 1, // Default stroke width
+          gradient = null, // Gradient object or null
+          gradientDirection = 'vertical', // Direction of the gradient: 'vertical' or 'horizontal'
+        } = options;
+
+        // Optional: Create gradient if provided in options
+        if (gradient) {
+          let rectGradient;
+          if (gradientDirection === 'vertical') {
+            rectGradient = context.createLinearGradient(x, y, x, y + height); // Vertical gradient
+          } else {
+            rectGradient = context.createLinearGradient(x, y, x + width, y); // Horizontal gradient
+          }
+
+          // Add gradient colors (assuming gradient is an array of color-stop objects)
+          gradient.forEach((colorStop) => {
+            rectGradient.addColorStop(colorStop.position, colorStop.color);
+          });
+
+          context.fillStyle = rectGradient;
+        } else {
+          context.fillStyle = fill; // Default fill
+        }
+
+        // Draw rounded rectangle
+        context.beginPath();
+        context.moveTo(x + borderRadius, y);
+        context.lineTo(x + width - borderRadius, y);
+        context.quadraticCurveTo(x + width, y, x + width, y + borderRadius);
+        context.lineTo(x + width, y + height - borderRadius);
+        context.quadraticCurveTo(
+          x + width,
+          y + height,
+          x + width - borderRadius,
+          y + height
+        );
+        context.lineTo(x + borderRadius, y + height);
+        context.quadraticCurveTo(x, y + height, x, y + height - borderRadius);
+        context.lineTo(x, y + borderRadius);
+        context.quadraticCurveTo(x, y, x + borderRadius, y);
+        context.closePath();
+
+        // Fill the rounded rectangle
+        context.fill();
+
+        // Optional: Apply stroke if provided
+        if (stroke) {
+          context.strokeStyle = stroke;
+          context.lineWidth = strokeWidth;
+          context.stroke();
+        }
+      }
+
+      function drawCone(
+        context,
+        baseX,
+        baseY,
+        baseRadius,
+        height,
+        color = '#a1a3a6'
+      ) {
+        // Calculate the apex of the cone
+        const apexX = baseX;
+        const apexY = baseY - height;
+
+        // Move to the bottom left point of the cone's base
+        context.beginPath();
+        context.moveTo(baseX - baseRadius, baseY);
+
+        // Draw the left side of the cone
+        context.lineTo(apexX, apexY);
+
+        // Draw the right side of the cone
+        context.lineTo(baseX + baseRadius, baseY);
+
+        // Close the path
+        context.closePath();
+
+        // Create a linear gradient for the cone fill
+        const gradient = context.createLinearGradient(
+          baseX,
+          baseY,
+          apexX,
+          apexY
+        );
+        gradient.addColorStop(0, '#f2f2f2'); // Base color
+        gradient.addColorStop(1, color); // Apex color
+
+        // Set the fill style
+        context.fillStyle = gradient;
+
+        // Fill the cone shape
+        context.fill();
+
+        // Optionally draw the outline of the cone
+        context.strokeStyle = '#000'; // Outline color
+        context.stroke();
+      }
+      function drawCurvilinearShape(
+        context,
+        startX,
+        startY,
+        endX,
+        endY,
+        control1X = null,
+        control1Y = null,
+        control2X = null,
+        control2Y = null,
+        gradientColors = ['#a1a3a6', '#f2f2f2'], // Array of two gradient colors
+        strokeColor = '#a1a3a6',
+        strokeWidth = 1
+      ) {
+        // Create a linear gradient
+        const gradient = context.createLinearGradient(
+          startX,
+          startY,
+          endX,
+          endY
+        );
+        gradient.addColorStop(0, gradientColors[0]); // Start color
+        gradient.addColorStop(1, gradientColors[1]); // End color
+
+        // Begin a new path
+        context.beginPath();
+
+        // Move to the starting point
+        context.moveTo(startX, startY);
+
+        // Check if control points are provided
+        if (
+          control1X !== null &&
+          control1Y !== null &&
+          control2X !== null &&
+          control2Y !== null
+        ) {
+          // Draw the curvilinear segments using Bezier curves
+          context.bezierCurveTo(
+            control1X,
+            control1Y,
+            control2X,
+            control2Y,
+            endX,
+            endY
+          );
+        } else {
+          // Draw a straight line from start to end
+          context.lineTo(endX, endY);
+        }
+
+        // Close the path
+        context.closePath();
+
+        // Set the fill style to the gradient
+        context.fillStyle = gradient;
+
+        // Fill the shape
+        context.fill();
+
+        // Set the stroke style and width
+        context.strokeStyle = strokeColor;
+        context.lineWidth = strokeWidth;
+
+        // Draw the outline of the shape
+        context.stroke();
+      }
+    </script>
+  </body>
+</html>
