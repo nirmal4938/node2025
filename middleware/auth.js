@@ -1,5 +1,18 @@
 const jwt = require('jsonwebtoken');
 
+const debug = require('debug');
+const log = debug('auth-middleware');
+
+const ensureLoggedIn = async (req, res, next) => {
+  log('[ensureLoggedIn] REQ User id: ', (req.user || {}).id);
+  log('[ensureLoggedIn] REQ Authenticated: ', req.isAuthenticated());
+  if (req.isAuthenticated() === false) {
+    return res.sendStatus(401);
+  }
+
+  return next();
+};
+
 const authenticateJWT = (req, res, next) => {
     const token = req.cookies.token; // Get token from cookies
 
@@ -16,4 +29,4 @@ const authenticateJWT = (req, res, next) => {
         next(); // Pass control to the next handler
     });
 };
-module.exports = authenticateJWT
+module.exports = {authenticateJWT, ensureLoggedIn}

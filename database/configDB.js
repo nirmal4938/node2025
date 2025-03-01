@@ -1,12 +1,8 @@
 const mongoose = require("mongoose");
-
-let uri =
-    "mongodb+srv://nirmal_mongo_db:lIVAxqEqVue786eP@lms.hgumitz.mongodb.net/iot-1?retryWrites=true&w=majority&appName=lms";
-
 // Function to connect to MongoDB
 const connectDB = async () => {
     try {
-        const con = await mongoose.connect(uri);
+        const con = await mongoose.connect(process.env.MONGO_URI);
         console.log(`Connected mongoose ${con.connection.host}`);
     } catch (err) {
         console.error("Error connecting to MongoDB:", err);

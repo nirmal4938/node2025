@@ -14,7 +14,46 @@ const getUsers = async (req, res) => {
         throw err
     }
 }
+// Utility function for finding a user by ID
+const findUserById = async (id) => {
+    if (!id) {
+        throw new Error('User ID is required.');
+    }
 
+    const user = await Account.findById(id);
+    if (!user) {
+        throw new Error('User not found.');
+    }
+
+    return user;
+};
+
+// Controller function
+const getOrFindUserById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await findUserById(id);
+
+        // Respond with user details
+        res.status(200).json({
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                is_active: user.is_active,
+                is_2fa_enabled: user.is_2fa_enabled,
+                created_at: user.created_at,
+                updated_at: user.updated_at,
+            },
+        });
+    } catch (err) {
+        console.error(err);
+        const statusCode = err.message === 'User ID is required.' || err.message === 'User not found.' ? 400 : 500;
+        res.status(statusCode).json({ error: err.message });
+    }
+};
 const createAccount = async (req, res) => {
     try {
         const { username, email, password, role } = req.body;
@@ -35,8 +74,8 @@ const createAccount = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // 4. Generate a Google Authenticator 2FA secret
-        const secret = await speakeasy.generateSecret({ name: `YourAppName (${email})` });
-        console.log("secret", secret.base32)
+        // const secret = await speakeasy.generateSecret({ name: `YourAppName (${email})` });
+        // console.log("secret", secret.base32)
         // 5. Create and save the new account
         const newAccount = new Account({
             username,
@@ -44,8 +83,8 @@ const createAccount = async (req, res) => {
             password: hashedPassword,
             role: role || 'user',
             is_active: false, // Account starts as inactive
-            google_2fa_secret: secret.base32, // Save 2FA secret
-            is_2fa_enabled: false, // 2FA not verified yet
+            // google_2fa_secret: secret.base32, // Save 2FA secret
+            require_mfa: false, // 2FA not verified yet
             created_at: new Date(),
             updated_at: new Date(),
         });
@@ -53,18 +92,18 @@ const createAccount = async (req, res) => {
         await newAccount.save();
 
         // 6. Generate a QR code for the 2FA secret
-        const qrCode = await qrcode.toDataURL(secret.otpauth_url);
+        // const qrCode = await qrcode.toDataURL(secret.otpauth_url);
 
         // 7. Respond with the user data and the QR code
         res.status(201).json({
-            message: 'Account created successfully! Please scan this QR code to set up 2FA.',
-            qr_code: qrCode,
+            message: 'Account created successfully!',
+            // qr_code: qrCode,
             user: {
                 username: newAccount.username,
                 email: newAccount.email,
                 role: newAccount.role,
                 is_active: newAccount.is_active,
-                is_2fa_enabled: newAccount.is_2fa_enabled,
+                require_mfa: newAccount.require_mfa,
                 created_at: newAccount.created_at,
                 updated_at: newAccount.updated_at,
             },
@@ -94,44 +133,30 @@ const activateAccount = async (id) => {
     }
 }
 
-const login = async (req, res) => {
-    const { email, password } = req.body;
-    // console.log("process.env", process.env.JWT_SECRET)
-    try {
-        const account = await Account.findOne({ email });
-        if (!account) {
-            return res.status(400).json({ message: 'User not found.' });
-        }
+// const login = async (req, res) => {
+//     const { email, password } = req.body;
+//     // console.log("process.env", process.env.JWT_SECRET)
+//     try {
+//         const account = await Account.findOne({ email });
 
-        // 2. Check if password is valid
-        const isPasswordValid = await account.comparePassword(password);
-        if (!isPasswordValid) {
-            return res.status(400).json({ message: 'Invalid password.' });
-        }
+//         // 4. Generate JWT Token
+//         const token = jwt.sign({ userId: account._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        // 3. Check if the account is active
-        if (!account.is_active) {
-            return res.status(403).json({ message: 'Account is inactive. Please activate it.' });
-        }
-
-        // 4. Generate JWT Token
-        const token = jwt.sign({ userId: account._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-        // 5. Set JWT Token in HttpOnly Cookie
-        res.cookie('token', token, {
-            httpOnly: true,       // Prevents access to the cookie via JavaScript (prevents XSS)
-            secure: process.env.NODE_ENV === 'production', // Ensures cookie is only sent over HTTPS in production
-            sameSite: 'Strict',   // Ensures cookie is sent only in first-party context (prevents CSRF)
-            maxAge: 3600000,      // 1 hour (token expiration time, you can adjust it as needed)
-            path: '/',            // Path where the cookie is valid
-        });
-        // 6. Respond with a success message (without sending the token in the body)
-        res.status(200).json({ message: 'Login successful' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'An error occurred during activation.' });
-    }
-}
+//         // 5. Set JWT Token in HttpOnly Cookie
+//         res.cookie('token', token, {
+//             httpOnly: true,       // Prevents access to the cookie via JavaScript (prevents XSS)
+//             secure: process.env.NODE_ENV === 'production', // Ensures cookie is only sent over HTTPS in production
+//             sameSite: 'Strict',   // Ensures cookie is sent only in first-party context (prevents CSRF)
+//             maxAge: 3600000,      // 1 hour (token expiration time, you can adjust it as needed)
+//             path: '/',            // Path where the cookie is valid
+//         });
+//         // 6. Respond with a success message (without sending the token in the body)
+//         res.status(200).json({ message: 'Login successful' });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ error: 'An error occurred during activation.' });
+//     }
+// }
 
 const verify2FA = async (req, res) => {
     const { email, code } = req.body;
@@ -153,7 +178,7 @@ const verify2FA = async (req, res) => {
 
         // Verify the 2FA code
         const isValid = speakeasy.totp.verify({
-            secret: account.google_2fa_secret,
+            secret: account.mfa_secret,
             encoding: 'base32',
             token: code,
         });
@@ -163,7 +188,8 @@ const verify2FA = async (req, res) => {
         }
 
         // Enable 2FA and activate account
-        account.is_2fa_enabled = true;
+        account.require_mfa = true;
+        account.require_mfa_configuration = false;
         account.is_active = true;
         await account.save();
 
@@ -177,12 +203,66 @@ const verify2FA = async (req, res) => {
     }
 };
 
+const setup2FA = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        // Find the user account
+        const account = await Account.findOne({ email });
+        if (!account) {
+            return res.status(404).json({ error: 'Account not found.' });
+        }
+
+        // Generate 2FA secret
+        // const secret = speakeasy.generateSecret({ name: `YourAppName (${email})` });
+
+        // Save secret and return QR code
+        // account.mfa_secret = secret.base32;
+        account.require_mfa = true;
+        // account.require_mfa_configuration = true;
+        await account.save();
+
+        // const qrCode = await qrcode.toDataURL(secret.otpauth_url);
+
+        res.status(200).json({
+            message: '2FA setup initiated. Scan the QR code with your authenticator app.',
+            // qr_code: qrCode,
+        });
+    } catch (err) {
+        console.error('Error setting up 2FA:', err);
+        res.status(500).json({ error: 'An error occurred while setting up 2FA.' });
+    }
+};
+
+const reset2FA = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const account = await Account.findOne({ email });
+        if (!account) {
+            return res.status(404).json({ error: 'Account not found.' });
+        }
+
+        account.google_2fa_secret = null;
+        account.is_2fa_enabled = !(account.is_2fa_enabled);
+        account.is_2fa_verified = false;
+        await account.save();
+
+        res.status(200).json({ message: '2FA has been reset.' });
+    } catch (err) {
+        console.error('Error resetting 2FA:', err);
+        res.status(500).json({ error: 'An error occurred while resetting 2FA.' });
+    }
+};
+
 
 
 module.exports = {
     getUsers,
     createAccount,
     activateAccount,
-    login,
-    verify2FA
+    // login,
+    verify2FA,
+    setup2FA,
+    reset2FA
 }
