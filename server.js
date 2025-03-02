@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 4000;
 
 // Enable CORS for all origins (or specify a specific origin as needed)
 const corsOptions = {
-  origin: "http://localhost:3000", // Allow only this origin
+  origin: "https://lerna.onrender.com" || "http://localhost:3000", // Allow only this origin
   credentials: true, // Allow credentials (cookies, authorization headers)
 };
 
