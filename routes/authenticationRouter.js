@@ -41,6 +41,9 @@ const prepMFAConfiguration = (req, res, user) => {
 };
 // Login route
 
+router.get('/', (req, res) => {
+  res.status(200).json({ message: 'Auth route working' });
+});
 router.post('/login', (req, res) => (
   passport.authenticate('local', async (err, user, info) => {
     // const organization = await organizationService.findForUser(user);
