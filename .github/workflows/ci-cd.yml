@@ -28,7 +28,10 @@ jobs:
 
     - name: Run Tests
       run: npm test
-
+      env:
+        MONGO_URI: ${{ secrets.MONGO_URI }}  # Ensure MONGO_URI is passed during tests
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}  # Pass JWT_SECRET as well
+          
     - name: Build (Optional)
       run: npm run build
       continue-on-error: true  # Skip if you don't have a build step (like for frontend)
@@ -49,4 +52,3 @@ jobs:
         RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
         MONGO_URI: ${{ secrets.MONGO_URI }}
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
-
