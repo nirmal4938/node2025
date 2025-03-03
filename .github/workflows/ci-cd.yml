@@ -1,0 +1,50 @@
+name: CI/CD Pipeline for Node.js Server (Render)
+
+on:
+  push:
+    branches:
+      - main  # Only trigger CI/CD when pushing to main (change if needed)
+
+jobs:
+  ci:
+    name: Continuous Integration (Test & Lint)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'  # Adjust if your project uses a different Node.js version
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Run Lint
+      run: npm run lint
+      continue-on-error: true  # In case you haven't added linting yet
+
+    - name: Run Tests
+      run: npm test
+
+    - name: Build (Optional)
+      run: npm run build
+      continue-on-error: true  # Skip if you don't have a build step (like for frontend)
+
+  cd:
+    name: Continuous Deployment to Render
+    needs: ci  # Run only if CI passes
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Trigger Render Deployment
+      run: |
+        curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+        -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+        -H "Accept: application/json"
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+
